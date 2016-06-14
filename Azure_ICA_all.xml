@@ -5340,7 +5340,7 @@
 		  <TestID>AzureTemplate_002</TestID>
 		</test>
 		<test>
-		  <testName>Template-bosh-cf-acceptance-tests</testName>
+		  <testName>Template-cf-acceptance-tests</testName>
 		  <testScript></testScript>
 		  <testScriptPs1>Template-bosh-cf-acceptance-tests.ps1</testScriptPs1>
 		  <files></files>
@@ -6528,7 +6528,7 @@
 		<Cycle>
 			<cycleName>BOSH-CF</cycleName>
 			<test>
-				<Name>Template-bosh-cf-acceptance-tests</Name>
+				<Name>Template-cf-acceptance-tests</Name>
 			</test>
 		</Cycle>
 		<Cycle>
