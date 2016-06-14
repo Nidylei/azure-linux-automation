@@ -5339,7 +5339,33 @@
 		  <SupportedExecutionModes>AzureResourceManager</SupportedExecutionModes>
 		  <TestID>AzureTemplate_002</TestID>
 		</test>
-
+		<test>
+		  <testName>Template-bosh-cf-acceptance-tests</testName>
+		  <testScript></testScript>
+		  <testScriptPs1>Template-bosh-cf-acceptance-tests.ps1</testScriptPs1>
+		  <files></files>
+		  <setupType></setupType>
+		  <parameters>
+			<vmName></vmName>
+			<adminUsername></adminUsername>
+			<sshKeyData></sshKeyData>
+			<environment></environment>
+			<tenantID></tenantID>
+			<clientID></clientID>
+			<clientSecret></clientSecret>
+			<autoDeployBosh>enabled</autoDeployBosh>
+			<cpiUrl></cpiUrl>
+			<cpiSha1></cpiSha1>
+			<stemcellUrl></stemcellUrl>
+			<stemcellSha1></stemcellSha1>
+		  </parameters>
+		  <TestType>
+		  </TestType>
+		  <TestFeature>
+		  </TestFeature>
+		  <SupportedExecutionModes>AzureResourceManager</SupportedExecutionModes>
+		  <TestID>AzureTemplate_003</TestID>
+		</test>
 		<!-- IMPORTED FROM LISA TEST DEFINITIONS -->
 		<test>
 			<testName>ICA-TERASORT-BENCHMARK-TEST</testName>
@@ -6499,7 +6525,12 @@
 				<Name>ICA-LVM-SHRINK-FUNCTIONAL-TEST</Name>
 			</test>
 		</Cycle>
-
+		<Cycle>
+			<cycleName>BOSH-CF</cycleName>
+			<test>
+				<Name>Template-bosh-cf-acceptance-tests</Name>
+			</test>
+		</Cycle>
 		<Cycle>
 			<cycleName>DEBUG</cycleName>
 			<!--You can add individual tests here and run them for debugging purpose. You can also add new cycles. -->
