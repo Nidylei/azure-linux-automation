@@ -151,7 +151,7 @@ try
 					$resultArr += $testResult
 					$resultSummary +=  CreateResultSummary -testResult $testResult -metaData $metaData -checkValues "PASS,FAIL,ABORTED" -testName $currentTestData.testName
 				}
-			echo y | .\tools\pscp -i .\ssh\$sshKey -q -P $port $dep_ssh_info:/tmp/*.tgz $LogDir
+			#echo y | .\tools\pscp -i .\ssh\$sshKey -q -P $port $dep_ssh_info:/tmp/*.tgz $LogDir
 			}
 			else
 			{
