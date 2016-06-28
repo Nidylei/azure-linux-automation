@@ -13,7 +13,7 @@ try
 	$SharedNetworkResourceGroupName = "bosh-share-network"
 	$Domains = @{'AzureCloud'='mscfonline.info';'AzureChinaCloud'='mscfonline.site'}
 	$Environment = $parameters.environment
-	$DomainName = $Domains.Environment
+	$DomainName = $Domains.$Environment
 	
     $V13CPIURL = "https://bosh.io/d/github.com/cloudfoundry-incubator/bosh-azure-cpi-release?v=13"
     $V13CPIURL_mc = "https://cloudfoundry.blob.core.chinacloudapi.cn/releases/bosh-azure-cpi-release-13.tgz"
@@ -151,6 +151,7 @@ try
 					$resultArr += $testResult
 					$resultSummary +=  CreateResultSummary -testResult $testResult -metaData $metaData -checkValues "PASS,FAIL,ABORTED" -testName $currentTestData.testName
 				}
+			echo y | .\tools\pscp -i .\ssh\$sshKey -q -P $port $dep_ssh_info:/tmp/*.tgz $LogDir
 			}
 			else
 			{
