@@ -6,40 +6,57 @@ $resultArr = @()
 
 try
 {
+
     $templateName = $currentTestData.testName
     $parameters = $currentTestData.parameters
     $location = $xmlConfig.config.Azure.General.Location
-
+	$SharedNetworkResourceGroupName = "bosh-share-network"
+	$Domains = @{'AzureCloud'='mscfonline.info';'AzureChinaCloud'='mscfonline.site'}
+	$Environment = $parameters.environment
+	$DomainName = $Domains.Environment
+	
+    $V13CPIURL = "https://bosh.io/d/github.com/cloudfoundry-incubator/bosh-azure-cpi-release?v=13"
+    $V13CPIURL_mc = "https://cloudfoundry.blob.core.chinacloudapi.cn/releases/bosh-azure-cpi-release-13.tgz"
+    $V13CPISHA1 = "5d1d5f62a30911d5e07285d3dfa0f1c4b41262b9"
+	$CF_RELEASE_URL = "https://cloudfoundry.blob.core.chinacloudapi.cn/releases/cf-release-231-local.tgz"
     if(Test-Path .\azuredeploy.parameters.json)
     {
         Remove-Item .\azuredeploy.parameters.json
     }
-
+	
     # update template parameter file 
-    LogMsg 'update template parameter file '
-    $jsonfile =  Get-Content ..\azure-quickstart-templates\bosh-setup\azuredeploy.parameters.json -Raw | ConvertFrom-Json
+    LogMsg 'update template parameter file'
+    $paramJsonfile =  Get-Content ..\azure-quickstart-templates\bosh-setup\azuredeploy.parameters.json -Raw | ConvertFrom-Json
+	
+    $Jsonfile =  Get-Content ..\azure-quickstart-templates\bosh-setup\azuredeploy.json -Raw | ConvertFrom-Json
+	# check CPI Version
+	$CPIUrl = $Jsonfile.variables.environmentAzureCloud.boshAzureCPIReleaseUrl
+	$CPIVersion = [int]$CPIUrl.Split('=')[1]
+	# if the orginal CPI Verison is v12 or lower, update version to v13
+	if($CPIVersion -lt 13)
+	{
+		$Jsonfile.variables.environmentAzureCloud.boshAzureCPIReleaseUrl = $V13CPIURL
+		$Jsonfile.variables.environmentAzureCloud.boshAzureCPIReleaseSha1 = $V13CPISHA1
+		$Jsonfile.variables.environmentAzureChinaCloud.boshAzureCPIReleaseUrl = $V13CPIURL_mc
+		$Jsonfile.variables.environmentAzureChinaCloud.boshAzureCPIReleaseSha1 = $V13CPISHA1
+		$Jsonfile.variables.environmentAzureChinaCloud.cfReleaseUrl = $CF_RELEASE_URL
+		($Jsonfile | ConvertTo-Json  -Depth 10).Replace("\u0027","'") | Out-File ..\azure-quickstart-templates\bosh-setup\azuredeploy.json
+	}
+	
     $curtime = Get-Date
     $timestr = "-" + $curtime.Month + "-" +  $curtime.Day  + "-" + $curtime.Hour + "-" + $curtime.Minute + "-" + $curtime.Second
-    $jsonfile.parameters.vmName.value = $parameters.vmName + $timestr
-    $jsonfile.parameters.adminUsername.value = $parameters.adminUsername
-    $jsonfile.parameters.sshKeyData.value = $parameters.sshKeyData
-    $jsonfile.parameters.environment.value = $parameters.environment
-    $jsonfile.parameters.tenantID.value = $parameters.tenantID
-    $jsonfile.parameters.clientID.value = $parameters.clientID
-    $jsonfile.parameters.clientSecret.value = $parameters.clientSecret
-    $jsonfile.parameters.autoDeployBosh.value = $parameters.autoDeployBosh
+    $paramJsonfile.parameters.vmName.value = $parameters.vmName + $timestr
+    $paramJsonfile.parameters.adminUsername.value = $parameters.adminUsername
+    $paramJsonfile.parameters.sshKeyData.value = $parameters.sshKeyData
+    $paramJsonfile.parameters.environment.value = $parameters.environment
+    $paramJsonfile.parameters.tenantID.value = $parameters.tenantID
+    $paramJsonfile.parameters.clientID.value = $parameters.clientID
+    $paramJsonfile.parameters.clientSecret.value = $parameters.clientSecret
+    $paramJsonfile.parameters.autoDeployBosh.value = $parameters.autoDeployBosh
     
-    # if autoDeployBosh=enabled: automatic bosh deployment with default configs and ignore the stemcell specified 
-    # if autoDeployBosh=disabled: configure then execute deploy bosh cf deployments on devbox
-    if($parameters.autoDeployBosh -eq "disabled")
-    {
-        $BOSH_AZURE_CPI_URL = $parameters.cpiUrl
-        $BOSH_AZURE_CPI_SHA1 = $parameters.cpiSha1
-        $BOSH_AZURE_STEMCELL_URL = $parameters.stemcellUrl
-        $BOSH_AZURE_STEMCELL_SHA1 = $parameters.stemcellSha1
-    }
     # save template parameter file
-    $jsonfile | ConvertTo-Json | Out-File .\azuredeploy.parameters.json
+    $paramJsonfile | ConvertTo-Json | Out-File .\azuredeploy.parameters.json
+	
     if(Test-Path .\azuredeploy.parameters.json)
     {
         LogMsg "successful save azuredeploy.parameters.json"
@@ -54,100 +71,100 @@ try
 
     if ($isDeployed[0] -eq $True)
     {
-        if ($parameters.autoDeployBosh -eq "enabled")
-        {
-            $testResult_deploy_bosh = "PASS"
-        }
-    }
-    else
-    {
-        $testResult_deploy_bosh = "Failed"
-        throw 'deploy resouces with error, please check.'
-    }
-
-    # connect to the devbox then deploy multi-vms cf
-    $dep_ssh_info = $(Get-AzureRmResourceGroupDeployment -ResourceGroupName $isDeployed[1]).outputs['sshDevBox'].Value.Split(' ')[1]
-    LogMsg $dep_ssh_info
-    $port = 22
-    $sshKey = "cf_devbox_privatekey.ppk"
-    $command = 'hostname'
-    
-$pre = @"
-#!/usr/bin/env bash
-
-export BOSH_AZURE_CPI_URL='${BOSH_AZURE_CPI_URL}'
-export BOSH_AZURE_CPI_SHA1='${BOSH_AZURE_CPI_SHA1}'
-export BOSH_AZURE_STEMCELL_URL='${BOSH_AZURE_STEMCELL_URL}'
-export BOSH_AZURE_STEMCELL_SHA1='${BOSH_AZURE_STEMCELL_SHA1}'
-
-python bosh-cf-perf-yaml-handler.py bosh.yml deployment
-python bosh-cf-perf-yaml-handler.py example_manifests/multiple-vm-cf.yml deployment
-"@
-    
-    # ssh to devbox and deploy multi-vms cf
-    echo y | .\tools\plink -i .\ssh\$sshKey -P $port $dep_ssh_info "$command"
-
-    if($parameters.autoDeployBosh -eq "enabled")
-    {
-        $out = echo y | .\tools\plink -i .\ssh\$sshKey -P $port $dep_ssh_info "./deploy_cloudfoundry.sh example_manifests/multiple-vm-cf.yml && echo multi_vms_cf_deploy_ok || echo multi_vms_cf_deploy_fail"
-    }
-	
-
-    $out | Out-File .\deploy_cloudfoundry.log -Encoding utf8
-
-    if ($out -match "multi_vms_cf_deploy_ok")
-    {
-        $testResult_deploy_multi_vms_cf = "PASS"
-        LogMsg "deploy multi vms cf successfully"
-		# Pre-Requisites-for-running-CATS
-		.\tools\dos2unix.exe -q .\remote-scripts\Pre-Requisites-for-running-CATS.sh
-		echo y | .\tools\pscp -i .\ssh\$sshKey -q -P $port .\remote-scripts\Pre-Requisites-for-running-CATS.sh ${dep_ssh_info}:
-        $out = echo y | .\tools\plink -i .\ssh\$sshKey -P $port $dep_ssh_info "bash Pre-Requisites-for-running-CATS.sh && echo prepare_ok || echo prepare_fail"		 
-		if ($out -match "prepare_ok")
+		$dep_ssh_info = $(Get-AzureRmResourceGroupDeployment -ResourceGroupName $isDeployed[1]).outputs['sshDevBox'].Value.Split(' ')[1]
+		$old_cfip = $(Get-AzureRmResourceGroupDeployment -ResourceGroupName $isDeployed[1]).outputs['cloudFoundryIP'].Value
+		$new_cfip = (Get-AzureRmPublicIpAddress -ResourceGroupName $SharedNetworkResourceGroupName -Name devbox-cf).IpAddress
+		LogMsg $dep_ssh_info
+		# connect to the devbox then deploy cf
+		$port = 22
+		$sshKey = "cf_devbox_privatekey.ppk"
+		$command = 'hostname'
+		echo y | .\tools\plink -i .\ssh\$sshKey -P $port $dep_ssh_info "$command"
+		$testTasks = ("acceptance test","smoke test")
+		foreach ($SetupType in $currentTestData.SubtestValues.split(","))
 		{
-			# Start CATS test
-			LogMsg "Successful to prepared pre-requisites for running CATS"
-			LogMsg "Start CAT test"
-			$out = echo y | .\tools\plink -i .\ssh\$sshKey -P $port $dep_ssh_info "source .profile;cd `$HOME/work/src/github.com/cloudfoundry/cf-acceptance-tests;./bin/test_default && cf_cats_pass || echo cf_cats_fail"
-			$out | Out-File $LogDir\CF_CATS_Logs.log -Encoding utf8
-			if($out -match "cf_cats_pass")
+			if($DeployedMultipleVMCF)
 			{
-				$testResult_cf_cat = "PASS"
+				echo y | .\tools\plink -i .\ssh\$sshKey -P $port $dep_ssh_info "echo yes | bosh delete deployment multiple-cf-on-azure"			
+			}
+			if($DeployedSingleVMCF)
+			{
+				echo y | .\tools\plink -i .\ssh\$sshKey -P $port $dep_ssh_info "echo yes | bosh delete deployment single-vm-cf-on-azure"						
+			}
+			#update yml file
+			echo y | .\tools\plink -i .\ssh\$sshKey -P $port $dep_ssh_info "sed -i '/type: vip$/a\  cloud_properties:\n    resource_group_name: $SharedNetworkResourceGroupName' example_manifests/$SetupType.yml"
+			echo y | .\tools\plink -i .\ssh\$sshKey -P $port $dep_ssh_info "sed -i 's/$old_cfip/$new_cfip/g' example_manifests/$SetupType.yml"
+			echo y | .\tools\plink -i .\ssh\$sshKey -P $port $dep_ssh_info "sed -i 's/$new_cfip.xip.io/$DomainName/g' example_manifests/$SetupType.yml"
+			$out = echo y | .\tools\plink -i .\ssh\$sshKey -P $port $dep_ssh_info "./deploy_cloudfoundry.sh example_manifests/$SetupType.yml && echo cf_deploy_ok || echo cf_deploy_fail"
+			$out | Out-File $LogDir\deploy-$SetupType.log -Encoding utf8
+			if($SetupType -eq 'multiple-vm-cf')
+			{
+				$DeployedMultipleVMCF = $True
+			}
+			if($SetupType -eq 'single-vm-cf')
+			{
+				$DeployedSingleVMCF = $True
+			}
+			if ($out -match "cf_deploy_ok")
+			{					
+				LogMsg "deploy $SetupType successfully, start to run test"
+				foreach($testTask in $testTasks)
+				{
+					LogMsg "Testing $SetupType : $testTask"
+					$metaData = "CF: $SetupType ; TestSuit : $testTask"
+					if($testTask -eq 'acceptance test')
+					{
+						if($parameters.environment -eq 'AzureCloud')
+						{
+							$out = echo y | .\tools\plink -i .\ssh\$sshKey -P $port $dep_ssh_info "bosh run errand acceptance_tests --keep-alive --download-logs --logs-dir /tmp/ && echo cat_test_pass || echo cat_test_fail"						
+						}
+						else
+						{
+							$out = echo y | .\tools\plink -i .\ssh\$sshKey -P $port $dep_ssh_info "bosh run errand acceptance-tests-internetless --keep-alive --download-logs --logs-dir /tmp && echo cat_test_pass || echo cat_test_fail"												
+						}
+						$out | Out-File $LogDir\$SetupType-AcceptanceTest.log -Encoding utf8
+						if($out -match "cat_test_pass")
+						{
+							$testResult = "PASS"
+						}
+						else
+						{
+							$testResult = "FAIL"
+							LogMsg "Acceptance Test failed, please check details from $LogDir\$SetupType-AcceptanceTest.log"
+						}
+					}
+					else
+					{
+						$out = echo y | .\tools\plink -i .\ssh\$sshKey -P $port $dep_ssh_info "bosh run errand smoke_tests --keep-alive --download-logs --logs-dir /tmp/ && echo smoke_test_pass || echo smoke_test_fail"						
+						$out | Out-File $LogDir\$SetupType-SmokeTest.log -Encoding utf8
+						if($out -match "smoke_test_pass")
+						{
+							$testResult = "PASS"
+						}
+						else
+						{
+							$testResult = "FAIL"
+							LogMsg "Smoke Test failed, please check details from $LogDir\$SetupType-SmokeTest.log"
+						}
+						
+					}
+					$resultArr += $testResult
+					$resultSummary +=  CreateResultSummary -testResult $testResult -metaData $metaData -checkValues "PASS,FAIL,ABORTED" -testName $currentTestData.testName
+				}
 			}
 			else
 			{
-				$testResult_cf_cat = "Failed"
-				LogMsg "CF-CATS test fail, please check details from $LogDir\CF_CATS_Logs.log"
-				Get-Content .\testLog_CF_CATS.log
+				LogMsg "deploy $SetupType failed, please check details from $LogDir\deploy-$SetupType.log"
+				$testResult = "FAIL"
+				$resultArr += $testResult
+				$resultSummary +=  CreateResultSummary -testResult $testResult -metaData "CF: $SetupType; TestSuit : acceptance test" -checkValues "PASS,FAIL,ABORTED" -testName $currentTestData.testName
+				$resultSummary +=  CreateResultSummary -testResult $testResult -metaData "CF: $SetupType; TestSuit : smoke test" -checkValues "PASS,FAIL,ABORTED" -testName $currentTestData.testName
 			}
 		}
-		else
-		{
-			LogMsg "Failed to prepared pre-requisites for running CATS,please ssh to devbox and check details from Pre-Requisites-for-running-CATS.log"
-			$testResult_cf_cat = "Failed"
-		}
-	}
-    else
-    {
-        $testResult_deploy_multi_vms_cf = "Failed"
-        LogMsg "deploy multi vms cf failed, please ssh to devbox and check details from deploy_cloudfoundry.log"
-    }
-
-    if ($testResult_deploy_bosh -eq "PASS" -and $testResult_deploy_multi_vms_cf -eq "PASS" -and $testResult_cf_cat -eq "PASS")
-    {
-        $testResult = "PASS"
     }
     else
     {
-        $testResult = "Failed"
-    }
-
-    $testStatus = "TestCompleted"
-    LogMsg "Test result : $testResult"
-
-    if ($testStatus -eq "TestCompleted")
-    {
-        LogMsg "Test Completed"
+        throw 'deploy resouces with error, please check.'
     }
 }
 catch
@@ -161,8 +178,10 @@ Finally
     if (!$testResult)
     {
         $testResult = "Aborted"
+		$resultArr += $testResult
+		$resultSummary += CreateResultSummary -testResult $testResult -metaData "" -checkValues "PASS,FAIL,ABORTED" -testName $currentTestData.testName
     }
-    $resultArr += $testResult
+	
 }
 
 $result = GetFinalResultHeader -resultarr $resultArr
@@ -171,4 +190,4 @@ $result = GetFinalResultHeader -resultarr $resultArr
 DoTestCleanUp -result $result -testName $currentTestData.testName -deployedServices $isDeployed[1] -ResourceGroups $isDeployed[1]
 
 #Return the result and summery to the test suite script..
-return $result
+return $result, $resultSummary
