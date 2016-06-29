@@ -85,11 +85,13 @@ try
 		{
 			if($DeployedMultipleVMCF)
 			{
+				LogMsg "Remove deployed multiple-cf-on-azure"
 				echo y | .\tools\plink -i .\ssh\$sshKey -P $port $dep_ssh_info "echo yes | bosh delete deployment multiple-cf-on-azure"			
 			}
 			if($DeployedSingleVMCF)
 			{
-				echo y | .\tools\plink -i .\ssh\$sshKey -P $port $dep_ssh_info "echo yes | bosh delete deployment single-vm-cf-on-azure"						
+				LogMsg "Remove deployed single-vm-cf-on-azure"
+				echo y | .\tools\plink -i .\ssh\$sshKey -P $port $dep_ssh_info "echo yes | bosh delete deployment single-vm-cf-on-azure"		
 			}
 			#update yml file
 			echo y | .\tools\plink -i .\ssh\$sshKey -P $port $dep_ssh_info "sed -i '/type: vip$/a\  cloud_properties:\n    resource_group_name: $SharedNetworkResourceGroupName' example_manifests/$SetupType.yml"
@@ -111,7 +113,7 @@ try
 				foreach($testTask in $testTasks)
 				{
 					LogMsg "Testing $SetupType : $testTask"
-					$metaData = "CF: $SetupType ; TestSuit : $testTask"
+					$metaData = "CF: $SetupType TestSuit: $testTask"
 					if($testTask -eq 'acceptance test')
 					{
 						if($parameters.environment -eq 'AzureCloud')
@@ -125,6 +127,7 @@ try
 						$out | Out-File $LogDir\$SetupType-AcceptanceTest.log -Encoding utf8
 						if($out -match "cat_test_pass")
 						{
+							LogMsg "$testTask PASS on deployment $SetupType"
 							$testResult = "PASS"
 						}
 						else
@@ -139,27 +142,27 @@ try
 						$out | Out-File $LogDir\$SetupType-SmokeTest.log -Encoding utf8
 						if($out -match "smoke_test_pass")
 						{
+							LogMsg "$testTask PASS on deployment $SetupType"
 							$testResult = "PASS"
 						}
 						else
 						{
 							$testResult = "FAIL"
 							LogMsg "Smoke Test failed, please check details from $LogDir\$SetupType-SmokeTest.log"
-						}
-						
+						}						
 					}
 					$resultArr += $testResult
 					$resultSummary +=  CreateResultSummary -testResult $testResult -metaData $metaData -checkValues "PASS,FAIL,ABORTED" -testName $currentTestData.testName
 				}
-			#echo y | .\tools\pscp -i .\ssh\$sshKey -q -P $port $dep_ssh_info:/tmp/*.tgz $LogDir
+				echo y | .\tools\pscp -i .\ssh\$sshKey -q -P $port ${dep_ssh_info}:/tmp/*.tgz $LogDir
 			}
 			else
 			{
 				LogMsg "deploy $SetupType failed, please check details from $LogDir\deploy-$SetupType.log"
 				$testResult = "FAIL"
 				$resultArr += $testResult
-				$resultSummary +=  CreateResultSummary -testResult $testResult -metaData "CF: $SetupType; TestSuit : acceptance test" -checkValues "PASS,FAIL,ABORTED" -testName $currentTestData.testName
-				$resultSummary +=  CreateResultSummary -testResult $testResult -metaData "CF: $SetupType; TestSuit : smoke test" -checkValues "PASS,FAIL,ABORTED" -testName $currentTestData.testName
+				$resultSummary +=  CreateResultSummary -testResult $testResult -metaData "CF: $SetupType TestSuit: acceptance test" -checkValues "PASS,FAIL,ABORTED" -testName $currentTestData.testName
+				$resultSummary +=  CreateResultSummary -testResult $testResult -metaData "CF: $SetupType TestSuit: smoke test" -checkValues "PASS,FAIL,ABORTED" -testName $currentTestData.testName
 			}
 		}
     }
