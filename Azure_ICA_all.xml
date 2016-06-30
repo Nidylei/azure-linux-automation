@@ -5364,7 +5364,7 @@
 		  <TestFeature>
 		  </TestFeature>
 		  <SupportedExecutionModes>AzureResourceManager</SupportedExecutionModes>
-	      <SubtestValues>multiple-vm-cf,single-vm-cf</SubtestValues>
+	      <SubtestValues>single-vm-cf,multiple-vm-cf</SubtestValues>
 		  <TestID>AzureTemplate_003</TestID>
 		</test>
 		<!-- IMPORTED FROM LISA TEST DEFINITIONS -->
