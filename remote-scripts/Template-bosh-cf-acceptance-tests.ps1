@@ -127,13 +127,25 @@ try
 						$out | Out-File $LogDir\$SetupType-AcceptanceTest.log -Encoding utf8
 						if($out -match "cat_test_pass")
 						{
+							LogMsg "****************************************************************"
 							LogMsg "$testTask PASS on deployment $SetupType"
+							LogMsg "****************************************************************"
 							$testResult = "PASS"
 						}
 						else
 						{
 							$testResult = "FAIL"
-							LogMsg "Acceptance Test failed, please check details from $LogDir\$SetupType-AcceptanceTest.log"
+							LogMsg "****************************************************************"
+							LogMsg "$testTask FAIL on deployment $SetupType"
+							LogMsg "****************************************************************"
+							LogMsg "please check details from $LogDir\$SetupType-AcceptanceTest.log"
+						}
+						$logs = [String](Get-Content $LogDir\$SetupType-AcceptanceTest.log)
+						$pattern = "Logs saved in ``(\S+)'"
+						if($logs -match $pattern)
+						{
+							$Logfile = $Matches[1]
+							echo y | .\tools\pscp -i .\ssh\$sshKey -q -P $port ${dep_ssh_info}:$Logfile $LogDir\$SetupType-AcceptanceTest.tgz
 						}
 					}
 					else
@@ -142,23 +154,34 @@ try
 						$out | Out-File $LogDir\$SetupType-SmokeTest.log -Encoding utf8
 						if($out -match "smoke_test_pass")
 						{
+							LogMsg "****************************************************************"
 							LogMsg "$testTask PASS on deployment $SetupType"
+							LogMsg "****************************************************************"
 							$testResult = "PASS"
 						}
 						else
 						{
 							$testResult = "FAIL"
-							LogMsg "Smoke Test failed, please check details from $LogDir\$SetupType-SmokeTest.log"
+							LogMsg "****************************************************************"
+							LogMsg "$testTask FAIL on deployment $SetupType"
+							LogMsg "****************************************************************"
+							LogMsg "please check details from $LogDir\$SetupType-AcceptanceTest.log"
 						}						
+						$logs = [String](Get-Content $LogDir\$SetupType-SmokeTest.log)
+						$pattern = "Logs saved in ``(\S+)'"
+						if($logs -match $pattern)
+						{
+							$Logfile = $Matches[1]
+							echo y | .\tools\pscp -i .\ssh\$sshKey -q -P $port ${dep_ssh_info}:$Logfile $LogDir\$SetupType-SmokeTest.tgz
+						}
 					}
 					$resultArr += $testResult
 					$resultSummary +=  CreateResultSummary -testResult $testResult -metaData $metaData -checkValues "PASS,FAIL,ABORTED" -testName $currentTestData.testName
 				}
-				echo y | .\tools\pscp -i .\ssh\$sshKey -q -P $port ${dep_ssh_info}:/tmp/*.tgz $LogDir
 			}
 			else
 			{
-				LogMsg "deploy $SetupType failed, please check details from $LogDir\deploy-$SetupType.log"
+				LogMsg "deploy $SetupType FAILED, please check details from $LogDir\deploy-$SetupType.log"
 				$testResult = "FAIL"
 				$resultArr += $testResult
 				$resultSummary +=  CreateResultSummary -testResult $testResult -metaData "CF: $SetupType TestSuit: acceptance test" -checkValues "PASS,FAIL,ABORTED" -testName $currentTestData.testName
