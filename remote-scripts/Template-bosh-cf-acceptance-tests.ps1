@@ -135,10 +135,10 @@ try
 						else
 						{
 							$testResult = "FAIL"
+							LogMsg "please check details from $LogDir\$SetupType-AcceptanceTest.log"
 							LogMsg "****************************************************************"
 							LogMsg "$testTask FAIL on deployment $SetupType"
 							LogMsg "****************************************************************"
-							LogMsg "please check details from $LogDir\$SetupType-AcceptanceTest.log"
 						}
 						$logs = [String](Get-Content $LogDir\$SetupType-AcceptanceTest.log)
 						$pattern = "Logs saved in ``(\S+)'"
@@ -162,10 +162,10 @@ try
 						else
 						{
 							$testResult = "FAIL"
+							LogMsg "please check details from $LogDir\$SetupType-AcceptanceTest.log"
 							LogMsg "****************************************************************"
 							LogMsg "$testTask FAIL on deployment $SetupType"
 							LogMsg "****************************************************************"
-							LogMsg "please check details from $LogDir\$SetupType-AcceptanceTest.log"
 						}						
 						$logs = [String](Get-Content $LogDir\$SetupType-SmokeTest.log)
 						$pattern = "Logs saved in ``(\S+)'"
