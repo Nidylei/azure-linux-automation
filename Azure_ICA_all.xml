@@ -3352,6 +3352,157 @@
 					</VirtualMachine>					
 				</HostedService>
 			</S2C1>			
+			<Ubuntu1204>
+				<Publisher>Canonical</Publisher>
+				<Offer>UbuntuServer</Offer>
+				<Sku>12.04.5-LTS</Sku>
+				<Version>latest</Version>
+			</Ubuntu1204>
+			<Ubuntu1404>
+				<Publisher>Canonical</Publisher>
+				<Offer>UbuntuServer</Offer>
+				<Sku>14.04.5-LTS</Sku>
+				<Version>latest</Version>
+			</Ubuntu1404>
+			<Ubuntu1604>
+				<Publisher>Canonical</Publisher>
+				<Offer>UbuntuServer</Offer>
+				<Sku>16.04.0-LTS</Sku>
+				<Version>latest</Version>
+			</Ubuntu1604>
+			<Ubuntu1610>
+				<Publisher>Canonical</Publisher>
+				<Offer>UbuntuServer</Offer>
+				<Sku>16.10</Sku>
+				<Version>latest</Version>
+			</Ubuntu1610>
+			<CentOS65>
+				<Publisher>OpenLogic</Publisher>
+				<Offer>CentOS</Offer>
+				<Sku>6.5</Sku>
+				<Version>latest</Version>
+			</CentOS65>
+			<CentOS66>
+				<Publisher>OpenLogic</Publisher>
+				<Offer>CentOS</Offer>
+				<Sku>6.6</Sku>
+				<Version>latest</Version>
+			</CentOS66>
+			<CentOS67>
+				<Publisher>OpenLogic</Publisher>
+				<Offer>CentOS</Offer>
+				<Sku>6.7</Sku>
+				<Version>latest</Version>
+			</CentOS67>
+			<CentOS68>
+				<Publisher>OpenLogic</Publisher>
+				<Offer>CentOS</Offer>
+				<Sku>6.8</Sku>
+				<Version>latest</Version>
+			</CentOS68>
+			<CentOS70>
+				<Publisher>OpenLogic</Publisher>
+				<Offer>CentOS</Offer>
+				<Sku>7.0</Sku>
+				<Version>latest</Version>
+			</CentOS70>
+			<CentOS71>
+				<Publisher>OpenLogic</Publisher>
+				<Offer>CentOS</Offer>
+				<Sku>7.1</Sku>
+				<Version>latest</Version>
+			</CentOS71>
+			<CentOS72>
+				<Publisher>OpenLogic</Publisher>
+				<Offer>CentOS</Offer>
+				<Sku>7.2</Sku>
+				<Version>latest</Version>
+			</CentOS72>
+			<CoreOSAlpha>
+				<Publisher>CoreOS</Publisher>
+				<Offer>CoreOS</Offer>
+				<Sku>Alpha</Sku>
+				<Version>latest</Version>
+			</CoreOSAlpha>
+			<CoreOSBeta>
+				<Publisher>CoreOS</Publisher>
+				<Offer>CoreOS</Offer>
+				<Sku>Beta</Sku>
+				<Version>latest</Version>
+			</CoreOSBeta>
+			<CoreOSStable>
+				<Publisher>CoreOS</Publisher>
+				<Offer>CoreOS</Offer>
+				<Sku>Stable</Sku>
+				<Version>latest</Version>
+			</CoreOSStable>
+			<Debian7>
+				<Publisher>credativ</Publisher>
+				<Offer>Debian</Offer>
+				<Sku>7</Sku>
+				<Version>latest</Version>
+			</Debian7>
+			<Debian8>
+				<Publisher>credativ</Publisher>
+				<Offer>Debian</Offer>
+				<Sku>8</Sku>
+				<Version>latest</Version>
+			</Debian8>
+			<openSUSEleap421>
+				<Publisher>SUSE</Publisher>
+				<Offer>openSUSE-Leap</Offer>
+				<Sku>42.1</Sku>
+				<Version>latest</Version>
+			</openSUSEleap421>
+			<SLES11SP4>
+				<Publisher>SUSE</Publisher>
+				<Offer>SLES</Offer>
+				<Sku>11-SP4</Sku>
+				<Version>latest</Version>
+			</SLES11SP4>
+			<SLES12SP1>
+				<Publisher>SUSE</Publisher>
+				<Offer>SLES</Offer>
+				<Sku>12-SP1</Sku>
+				<Version>latest</Version>
+			</SLES12SP1>
+			<SLES12SP2>
+				<Publisher>SUSE</Publisher>
+				<Offer>SLES</Offer>
+				<Sku>12-SP2</Sku>
+				<Version>latest</Version>
+			</SLES12SP2>
+			<SLES12SP2BYOS>
+				<Publisher>SUSE</Publisher>
+				<Offer>SLES-BYOS</Offer>
+				<Sku>12-SP2</Sku>
+				<Version>latest</Version>
+			</SLES12SP2BYOS>
+			<SLES12SP1SAPBYOS>
+				<Publisher>SUSE</Publisher>
+				<Offer>SLES-SAP-BYOS</Offer>
+				<Sku>12-SP1</Sku>
+				<Version>latest</Version>
+			</SLES12SP1SAPBYOS>
+			<SLES12SP2SAPBYOS>
+				<Publisher>SUSE</Publisher>
+				<Offer>SLES-SAP-BYOS</Offer>
+				<Sku>12-SP2</Sku>
+				<Version>latest</Version>
+			</SLES12SP2SAPBYOS>
+			<SLES11SP4SAPCAL>
+				<Publisher>SUSE</Publisher>
+				<Offer>SLES-SAPCAL</Offer>
+				<Sku>11-SP4</Sku>
+				<Version>latest</Version>
+			</SLES11SP4SAPCAL>
+			<SLES12SP1SAPCAL>
+				<Publisher>SUSE</Publisher>
+				<Offer>SLES-SAPCAL</Offer>
+				<Sku>12-SP1</Sku>
+				<Version>latest</Version>
+			</SLES12SP1SAPCAL>
+
 		</Deployment>
 		
 
@@ -5667,6 +5818,22 @@
 			<TestID>UI_001</TestID>
 			<Priority>P0</Priority>
 		</test>
+		<test>
+			<testName>ICA-NTP-CHECK</testName>
+			<testScript>ICA-NTP-CHECK.py</testScript>
+			<testScriptPs1>ICA-NTP-CHECK.ps1</testScriptPs1>
+			<files>.\remote-scripts\azuremodules.py,.\remote-scripts\ICA-NTP-CHECK.py</files>
+			<setupType>BVTDeployment</setupType>
+			<TestType></TestType>
+			<TestFeature></TestFeature>
+			<SupportedExecutionModes>AzureServiceManagement,AzureResourceManager</SupportedExecutionModes>
+			<Publisher>RedHat</Publisher>
+			<Offer>RHEL</Offer>
+			<Sku>7.2</Sku>
+			<Version>latest</Version>
+			<SubtestValues>Ubuntu1204,Ubuntu1404,Ubuntu1604,Ubuntu1610,CentOS65,CentOS66,CentOS67,CentOS68,CentOS670,CentOS71,CentOS72,CoreOSAlpha,CoreOSBeta,CoreOSStable,Debian7,Debian8,openSUSEleap421,SLES11SP4,SLES12SP1,SLES12SP2,SLES12SP2BYOS,SLES12SP1SAPBYOS,SLES12SP2SAPBYOS,SLES11SP4SAPCAL,SLES12SP1SAPCAL</SubtestValues>
+			<TestID></TestID>
+		</test>	
 	
 	</testsDefinition>
 
@@ -6497,6 +6664,13 @@
 			<cycleName>LVM-SHRINK</cycleName>
 			<test>
 				<Name>ICA-LVM-SHRINK-FUNCTIONAL-TEST</Name>
+			</test>
+		</Cycle>
+
+		<Cycle>
+			<cycleName>ICA-NTP-CHECK</cycleName>
+			<test>
+				<Name>ICA-NTP-CHECK</Name>
 			</test>
 		</Cycle>
 
