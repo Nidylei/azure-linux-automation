@@ -14,25 +14,27 @@ function CreateTestResultObject()
 $distros = ($currentTestData.SubtestValues).Split(",")
 foreach ($distro in $distros)
 {
-	$result = ""
-	$testResult = ""
-	$TestStatistics = CreateTestResultObject
-	$CurrentTestData.Publisher = $xmlConfig.config.Azure.Deployment.$distro.Publisher
-	$CurrentTestData.Offer = $xmlConfig.config.Azure.Deployment.$distro.Offer
-	$CurrentTestData.Sku = $xmlConfig.config.Azure.Deployment.$distro.Sku
-	$CurrentTestData.Version = $xmlConfig.config.Azure.Deployment.$distro.Version
-	LogMsg "Publisher: $($CurrentTestData.Publisher)"
-	LogMsg "Offer:     $($CurrentTestData.Offer)"
-	LogMsg "Sku:       $($CurrentTestData.Sku)"
-	$newLogDir = $LogDir + "\$distro"
-	if(!(test-path $newLogDir))
+	try
 	{
-		mkdir $newLogDir
-	}
-	$isDeployed = DeployVMS -setupType $currentTestData.setupType -Distro $Distro -xmlConfig $xmlConfig
-	if ($isDeployed)
-	{
-		try
+		$Global:detectedDistro = ""
+		$result = ""
+		$testResult = ""
+		$isDeployed = ""
+		$TestStatistics = CreateTestResultObject
+		$CurrentTestData.Publisher = $xmlConfig.config.Azure.Deployment.$distro.Publisher
+		$CurrentTestData.Offer = $xmlConfig.config.Azure.Deployment.$distro.Offer
+		$CurrentTestData.Sku = $xmlConfig.config.Azure.Deployment.$distro.Sku
+		$CurrentTestData.Version = $xmlConfig.config.Azure.Deployment.$distro.Version
+		LogMsg "Publisher: $($CurrentTestData.Publisher)"
+		LogMsg "Offer:     $($CurrentTestData.Offer)"
+		LogMsg "Sku:       $($CurrentTestData.Sku)"
+		$newLogDir = $LogDir + "\$distro"
+		if(!(test-path $newLogDir))
+		{
+			mkdir $newLogDir
+		}
+		$isDeployed = DeployVMS -setupType $currentTestData.setupType -Distro $Distro -xmlConfig $xmlConfig
+		if ($isDeployed)
 		{
 			$hs1VIP = $AllVMData.PublicIP
 			$hs1vm1sshport = $AllVMData.SSHPort
@@ -53,7 +55,7 @@ foreach ($distro in $distros)
 			{
 				$ntpInfo = Get-Content $newLogDir\ntpinfo.log
 				$ntpInstalled = $ntpInfo.split(':')[0]
-				$ntpVersion = $ntpInfo.split(':')[1]		
+				$ntpVersion = $ntpInfo.split(':')[-1]		
 				$TestStatistics.Distro = $distro
 				$TestStatistics.Installed = $ntpInstalled
 				$TestStatistics.NTPVersion = $ntpVersion
@@ -65,45 +67,36 @@ foreach ($distro in $distros)
 			}
 		}
 
-		catch
+		else
 		{
-			$ErrorMessage =  $_.Exception.Message
-			LogMsg "EXCEPTION : $ErrorMessage"   
-		}
-		Finally
-		{
-			$metaData = ""
-			if (!$testResult)
-			{
-				$testResult = "Aborted"
-			}
+			$testResult = "Aborted"
 			$resultArr += $testResult
-	#$resultSummary +=  CreateResultSummary -testResult $testResult -metaData $metaData -checkValues "PASS,FAIL,ABORTED" -testName $currentTestData.testName# if you want to publish all result then give here all test status possibilites. if you want just failed results, then give here just "FAIL". You can use any combination of PASS FAIL ABORTED and corresponding test results will be published!
-		}   
+		}
 	}
-
-	else
+	catch
 	{
-		$testResult = "Aborted"
-		$resultArr += $testResult
+		$ErrorMessage =  $_.Exception.Message
+		LogMsg "EXCEPTION : $ErrorMessage"   
 	}
+	Finally
+	{
+		$metaData = ""
+		if (!$testResult)
+		{
+			$testResult = "Aborted"
+		}
+		$resultArr += $testResult
+	}   
+
+	$resultSummary +=  CreateResultSummary -testResult $testResult -metaData $distro -checkValues "PASS,FAIL,ABORTED" -testName $currentTestData.testName
 
 	$result = GetFinalResultHeader -resultarr $resultArr
-
 	#Clean up the setup
 	DoTestCleanUp -result $result -testName $currentTestData.testName -deployedServices $isDeployed -ResourceGroups $isDeployed
+
 }
 
 Out-Host -InputObject $allTestStatistics
-
-foreach ( $value in $allTestStatistics )
-{
-	$deploymentTimes += $value.DeploymentTime
-#	LogMsg "Distro`tntp Installed?`tntp Version"
-#	LogMsg "$($value.Distro)`t$($value.ntpInstalled)`t$($value.ntpVersion)"
-	$metaData = "$($value.Distro)"
-	$resultSummary +=  CreateResultSummary -testResult 'PASS' -metaData $metaData -checkValues "PASS,FAIL,ABORTED" -testName $currentTestData.testName
-}
 
 #Return the result and summery to the test suite script..
 return $result,$resultSummary

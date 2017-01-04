@@ -20,7 +20,7 @@ def RunTest():
         exit()
     if(current_distro == "ubuntu" or current_distro == "debian"):
         pkgcheckcmd = 'apt-cache policy ntp'
-        pattern = re.compile(r'\s*Candidate: (\S+)')
+        pattern = re.compile(r'\s*Candidate: (\S+)\+\S+')
     elif(current_distro == "centos" or current_distro == "rhel" or current_distro == "fedora" or current_distro == "Oracle"):
         pkgcheckcmd = 'yum info ntp'
         pattern = re.compile(r'Version\s*: (\S+)')
