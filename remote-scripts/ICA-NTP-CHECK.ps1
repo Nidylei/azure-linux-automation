@@ -90,12 +90,12 @@ foreach ($distro in $distros)
 
 	$resultSummary +=  CreateResultSummary -testResult $testResult -metaData $distro -checkValues "PASS,FAIL,ABORTED" -testName $currentTestData.testName
 
-	$result = GetFinalResultHeader -resultarr $resultArr
 	#Clean up the setup
-	DoTestCleanUp -result $result -testName $currentTestData.testName -deployedServices $isDeployed -ResourceGroups $isDeployed
+	DoTestCleanUp -result $testResult -testName $currentTestData.testName -deployedServices $isDeployed -ResourceGroups $isDeployed
 
 }
 
+$result = GetFinalResultHeader -resultarr $resultArr
 Out-Host -InputObject $allTestStatistics
 
 #Return the result and summery to the test suite script..
