@@ -33,7 +33,7 @@ try
 			-replace 'REPLACE_WITH_SUBSCRIPTIONID',$subscriptionID`
 			-replace 'REPLACE_WITH_TENANTID',$spTenantID`
 			-replace 'REPLACE_WITH_CLIENTID',$spClientID`
-			-replace 'REPLACE_WITH_CLIENTSECRET',$spClientSecret`		
+			-replace 'REPLACE_WITH_CLIENTSECRET',$spClientSecret`
 			-replace 'REPLACE_WITH_SERVERNAME',$sqlServerName | out-file $file -Encoding default
 		}
 
