@@ -14,7 +14,7 @@ sudo apt-get update && sudo apt-get install azure-cli
 apt-get install -y git
 git clone https://github.com/Azure/meta-azure-service-broker
 
-az login --service-principal --tenant 72f988bf-86f1-41af-91ab-2d7cd011db47 --username c10e7bc7-8fe7-4a4e-9d49-8ecee7d9b41b --password 2yU601PosOaWxswtT9gNVMNzpDpJgEGxMyQ7+roqXtE=
+az login --service-principal --tenant REPLACE_WITH_TENANTID --username REPLACE_WITH_CLIENTID --password REPLACE_WITH_CLIENTSECRET
 export resourcegroupname="REPLACE_WITH_RESOURCEGROUPNAME"
 export location="REPLACE_WITH_LOCATION"
 export servername="REPLACE_WITH_SERVERNAME"
