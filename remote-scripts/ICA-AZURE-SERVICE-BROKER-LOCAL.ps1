@@ -59,10 +59,10 @@ try
 		RunLinuxCmd -username $user -password $password -ip $hs1VIP -port $hs1vm1sshport -command "zip -r service-broker-logfile.zip meta-azure-service-broker/coverage/" -runAsSudo -ignoreLinuxExitCode
 		#RunLinuxCmd -username $user -password $password -ip $hs1VIP -port $hs1vm1sshport -command "mv Runtime.log $($currentTestData.testScript).log" -runAsSudo
 		RemoteCopy -download -downloadFrom $hs1VIP -files "/home/$user/create-sql-rg.log, /home/$user/service-broker-logfile.zip, /home/$user/$($currentTestData.testScript).log" -downloadTo $LogDir -port $hs1vm1sshport -username $user -password $password
-		$testResult = RunLinuxCmd -username $user -password $password -ip $hs1VIP -port $hs1vm1sshport -command "cat $($currentTestData.testScript).log | grep -i '[0-9]\{2,3\} passing'" -runAsSudo
-		$passResult = RunLinuxCmd -username $user -password $password -ip $hs1VIP -port $hs1vm1sshport -command "cat $($currentTestData.testScript).log | grep -i '[0-9]\{2,3\} passing' |  wc -l" -runAsSudo
-		$failResult = RunLinuxCmd -username $user -password $password -ip $hs1VIP -port $hs1vm1sshport -command "cat $($currentTestData.testScript).log | grep -i '[0-9]\{2,3\} passing' | grep fail | wc -l" -runAsSudo
-		LogMsg "Test result summary:"
+		$testResult = RunLinuxCmd -username $user -password $password -ip $hs1VIP -port $hs1vm1sshport -command "cat $($currentTestData.testScript).log | grep -E `"passing|failing`"" -runAsSudo
+		$passResult = RunLinuxCmd -username $user -password $password -ip $hs1VIP -port $hs1vm1sshport -command "cat $($currentTestData.testScript).log | grep -i '[0-9]\{2,3\} passing' | wc -l" -runAsSudo
+		$failResult = RunLinuxCmd -username $user -password $password -ip $hs1VIP -port $hs1vm1sshport -command "cat $($currentTestData.testScript).log | grep -i '[0-9]\{1,3\} failing' | wc -l" -runAsSudo
+		LogMsg "Test result summary:`n"
 		Out-Host -InputObject $testResult
 		if (($passResult -eq 2) -and ($failResult -eq 0))
 		{
