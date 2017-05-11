@@ -21,8 +21,10 @@ try
 		
 		$resourceGroupName = "rg-sqlserver-$(get-random)"
 		$sqlServerName = "server-$(get-random)"
-		$location = (Get-AzureRmLocation | select Location | Get-Random).location
-		
+		[System.Collections.ArrayList]$locationlist = (Get-AzureRmLocation | select Location).location
+		$locationlist.Remove('koreasouth')
+		$locationlist.Remove('koreacentral')
+		$location = $locationlist | Get-Random
 		foreach ($file in $currentTestData.files.Split(","))
 		{
 			LogMsg "Update test script $file"
