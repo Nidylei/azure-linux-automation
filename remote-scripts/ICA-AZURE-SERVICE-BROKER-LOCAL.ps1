@@ -57,7 +57,7 @@ try
 		$connection.Close()
 		
 		LogMsg "Executing : $($currentTestData.testScript)"
-		RunLinuxCmd -username $user -password $password -ip $hs1VIP -port $hs1vm1sshport -command "./$($currentTestData.testScript) | tee $($currentTestData.testScript).log" -runAsSudo -runMaxAllowedTime 5400
+		RunLinuxCmd -username $user -password $password -ip $hs1VIP -port $hs1vm1sshport -command "./$($currentTestData.testScript) | tee $($currentTestData.testScript).log" -runAsSudo -runMaxAllowedTime 10800
 		RunLinuxCmd -username $user -password $password -ip $hs1VIP -port $hs1vm1sshport -command "zip -r service-broker-logfile.zip meta-azure-service-broker/coverage/" -runAsSudo -ignoreLinuxExitCode
 		#RunLinuxCmd -username $user -password $password -ip $hs1VIP -port $hs1vm1sshport -command "mv Runtime.log $($currentTestData.testScript).log" -runAsSudo
 		RemoteCopy -download -downloadFrom $hs1VIP -files "/home/$user/create-sql-rg.log, /home/$user/service-broker-logfile.zip, /home/$user/$($currentTestData.testScript).log" -downloadTo $LogDir -port $hs1vm1sshport -username $user -password $password
